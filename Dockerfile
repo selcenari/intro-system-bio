@@ -1,24 +1,23 @@
-# Temel olarak, rocker's R 4.1 sürümünü kullanıyoruz
-FROM rocker/r-ver:4.1.0
+# Başlangıç olarak rocker/verse:4.0.5 imajını kullan
+FROM rocker/verse:4.0.5
 
-LABEL maintainer="your-email@example.com"
-
-# Gerekli bağımlılıkları kuruyoruz
-RUN apt-get update && apt-get install -y \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev \
-    gdebi-core \
+# Sistem güncellemeleri ve RStudio kurulumu için gerekli paketlerin yüklenmesi
+RUN apt-get update && \
+    apt-get install -y \
     wget \
-    && apt-get clean
+    gdebi-core
 
-# RStudio 4.4.0 sürümünü manuel olarak indiriyoruz
-RUN wget https://download1.rstudio.org/desktop/bionic/amd64/rstudio-4.4.0-amd64.deb \
-    && gdebi -n rstudio-4.4.0-amd64.deb \
-    && rm rstudio-4.4.0-amd64.deb
+# RStudio kurulumu
+RUN wget https://download1.rstudio.org/desktop/bionic/amd64/rstudio-1.4.1106-amd64.deb && \
+    gdebi -n rstudio-1.4.1106-amd64.deb && \
+    rm rstudio-1.4.1106-amd64.deb
 
-# RStudio'yu doğru şekilde çalıştırabilmek için yolu ayarlıyoruz
-RUN ln -s /usr/lib/rstudio/bin/rstudio /usr/local/bin/rstudio
+# GitHub reposundaki paketleri yüklemek
+RUN R -e "install.packages('devtools')" && \
+    R -e "devtools::install_github('selcenari/intro-system-bio', ref='main')"
 
-# Çalıştırılacak komut
+# Çalışma dizini
+WORKDIR /home/rstudio
+
+# Komut satırını başlat
 CMD ["rstudio"]
