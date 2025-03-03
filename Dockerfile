@@ -1,23 +1,38 @@
 # Başlangıç olarak rocker/verse:4.0.5 imajını kullan
 FROM rocker/verse:4.0.5
 
-# Sistem güncellemeleri ve RStudio kurulumu için gerekli paketlerin yüklenmesi
+# Git ve gerekli araçları yükle
+RUN apt-get update && apt-get install -y git
+
+# Repo'yu klonla
+RUN git clone https://github.com/selcenari/intro-system-bio.git /home/rstudio/intro-system-bio
+
+# Çalışma dizinini ayarla
+WORKDIR /home/rstudio/intro-system-bio
+
+# RStudio ayarları ve ortam değişkenlerini belirle
+ENV NB_USER rstudio
+ENV NB_UID 1000
+ENV HOME /home/${NB_USER}
+
+# R environment ayarları
+RUN echo "PATH=${PATH}" >> /usr/local/lib/R/etc/Renviron
+ENV LD_LIBRARY_PATH /usr/local/lib/R/lib
+
+# R session'ı başlatırken gerekli kütüphaneleri ayarla
 RUN apt-get update && \
-    apt-get install -y \
-    wget \
-    gdebi-core
+    apt-get -y install python3-venv python3-dev && \
+    apt-get purge && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# RStudio kurulumu
-RUN wget https://download1.rstudio.org/desktop/bionic/amd64/rstudio-1.4.1106-amd64.deb && \
-    gdebi -n rstudio-1.4.1106-amd64.deb && \
-    rm rstudio-1.4.1106-amd64.deb
+# Python ortamı oluştur
+RUN mkdir -p /srv/venv && chown -R rstudio /srv/venv
 
-# GitHub reposundaki paketleri yüklemek
-RUN R -e "install.packages('devtools')" && \
-    R -e "devtools::install_github('selcenari/intro-system-bio', ref='main')"
+USER rstudio
 
-# Çalışma dizini
-WORKDIR /home/rstudio
+# Çalışma dizini olarak repo dizinini seç
+WORKDIR /home/rstudio/intro-system-bio
 
-# Komut satırını başlat
-CMD ["rstudio"]
+# RStudio'yu başlat
+CMD ["/usr/lib/rstudio-server/bin/rserver"]
