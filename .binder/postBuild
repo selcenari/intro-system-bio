@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Gerekli bağımlılıkları yükleyin
+# Gerekli bağımlılıkları yükle
 apt-get update
 apt-get install -y gdebi-core libcurl4-openssl-dev libssl-dev libxml2-dev
 
 # RStudio Server'ı indir ve yükle
 wget https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2023.06.2-561-amd64.deb
-echo "Y" | gdebi rstudio-server-2023.06.2-561-amd64.deb
+dpkg -i rstudio-server-2023.06.2-561-amd64.deb || apt-get install -f
 
 # RStudio Server'ı başlat
 rstudio-server start
+
